@@ -1,17 +1,15 @@
 import psycopg2
 import json
 
-# Настройки подключения (лучше вынести в config.py, но оставим здесь для наглядности)
 conn = psycopg2.connect(
     dbname="suppliers",
     user="postgres",
-    password="Alim1234",
+    password="Raim1234",
     host="localhost",
     port="5432"
 )
 cur = conn.cursor()
 
-# HELPER: GET OR CREATE GROUP (Процедура move_to_group сделает это в БД, но для Python оставим так)
 def get_group_id(group_name):
     if not group_name: return None
     cur.execute("SELECT id FROM groups WHERE name=%s", (group_name,))
@@ -24,7 +22,6 @@ def get_group_id(group_name):
         conn.commit()
         return gid
 
-# 1. ADD CONTACT (С учетом новой схемы)
 def add_contact():
     name = input("Name: ")
     email = input("Email: ")
@@ -44,7 +41,6 @@ def add_contact():
             print("Skipped")
             return
         
-        # Обновляем основные данные
         cur.execute("""
             UPDATE contacts 
             SET email=%s, birthday=%s, group_id=%s 
@@ -52,14 +48,12 @@ def add_contact():
         """, (email, birthday, gid, name))
         print("Contact updated.")
     else:
-        # Создаем новый контакт
         cur.execute("""
             INSERT INTO contacts(name, email, birthday, group_id) 
             VALUES (%s, %s, %s, %s) RETURNING id
         """, (name, email, birthday, gid))
         contact_id = cur.fetchone()[0]
         
-        # Добавляем телефон в таблицу phones
         cur.execute("""
             INSERT INTO phones(contact_id, phone, type) 
             VALUES (%s, %s, %s)
@@ -68,7 +62,6 @@ def add_contact():
     
     conn.commit()
 
-# 2. ADD PHONE (Через процедуру add_phone)
 def add_phone():
     name = input("Contact Name: ")
     phone = input("New phone: ")
@@ -82,7 +75,6 @@ def add_phone():
         conn.rollback()
         print("Error:", e)
 
-# 3. FILTER BY GROUP
 def filter_group():
     group_name = input("Group name to filter: ")
     cur.execute("""
@@ -96,7 +88,6 @@ def filter_group():
     for row in rows:
         print(f"Name: {row[0]}, Email: {row[1]}, Group: {row[2]}")
 
-# 4. SEARCH (Через функцию search_contacts)
 def search():
     q = input("Search (name/email/phone): ")
     cur.execute("SELECT * FROM search_contacts(%s)", (q,))
@@ -109,7 +100,6 @@ def search():
         for row in rows:
             print(row)
 
-# 5. SORT
 def sort_contacts():
     print("Sort by: 1. name, 2. birthday, 3. created_at")
     choice = input("Choice: ")
@@ -124,7 +114,6 @@ def sort_contacts():
     for row in cur.fetchall():
         print(row)
 
-# 6. PAGINATION
 def paginate():
     limit = 3
     offset = 0
@@ -155,7 +144,6 @@ def paginate():
         else:
             break
 
-# 7. EXPORT JSON
 def export_json():
     cur.execute("""
         SELECT c.name, c.email, c.birthday, g.name, 
@@ -180,7 +168,6 @@ def export_json():
         json.dump(data, f, indent=4, ensure_ascii=False)
     print("Exported to contacts.json!")
 
-# 8. IMPORT JSON
 def import_json():
     try:
         with open("contacts.json", "r", encoding='utf-8') as f:
@@ -205,7 +192,7 @@ def import_json():
     conn.commit()
     print("Import completed!")
 
-# 9. DELETE (Процедура из практики 8)
+#DELETE
 def delete_contact():
     name = input("Name to delete: ")
     try:
@@ -216,7 +203,6 @@ def delete_contact():
         conn.rollback()
         print("Error (make sure procedure delete_contact exists):", e)
 
-# MAIN MENU
 def menu():
     while True:
         print("\n--- PhoneBook Advanced ---")

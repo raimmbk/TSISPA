@@ -3,6 +3,6 @@ params = {
     "host": "localhost",
     "database": "suppliers",
     "user": "postgres",
-    "password": "Alim1234",
+    "password": "Raim1234",
     "port": "5432"
 }

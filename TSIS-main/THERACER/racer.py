@@ -32,7 +32,7 @@ REPAIR_COLOR = (200,0,0)
 LEADERBOARD_FILE="leaderboard.json"
 
 #IMAGES
-ROAD = pygame.image.load("AnimatedStreet.png")
+ROAD = pygame.image.load("animstreet.png")
 ROAD = pygame.transform.scale(ROAD,(WIDTH,HEIGHT))
 PLAYER_IMG = pygame.transform.scale(pygame.image.load("Player.png"),(50,90))
 ENEMY_IMG = pygame.transform.scale(pygame.image.load("Enemy.png"),(50,90))
